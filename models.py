@@ -1,6 +1,26 @@
 import torch 
 import torch.nn as nn
 
+class MLP(nn.Module):
+	def __init__(self, input_channels, input_size, hidden_sizes, output_size, activation=nn.ReLU(), dropout=0.0):
+		super().__init__()
+		layers = []
+		# Add the first linear layer to handle input channels
+		layers.append(nn.Linear(input_channels * input_size, hidden_sizes[0]))
+		layers.append(activation)
+		if dropout > 0.0:
+			layers.append(nn.Dropout(dropout))
+		for i in range(1, len(hidden_sizes)):
+			layers.append(nn.Linear(hidden_sizes[i - 1], hidden_sizes[i]))
+			layers.append(activation)
+			if dropout > 0.0:
+				layers.append(nn.Dropout(dropout))
+		layers.append(nn.Linear(hidden_sizes[-1], output_size))
+		self.mlp = nn.Sequential(*layers)
+	def forward(self, x):
+		x = x.view(x.size(0), -1)
+		return self.mlp(x)
+		
 class OperatorNetworkDirect(nn.Module):
 	"""
 	Orientation Inverter
